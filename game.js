@@ -1588,6 +1588,18 @@ function confirmEntry() {
     solveSeconds
   });
 
+  sendAnswerLog({
+    nickname: window._bokiState.nickname,
+    quest_id: quest.id,
+    quest_name: quest.title,
+    difficulty: quest.difficulty,
+    turn: session.currentTurn + 1,
+    scenario: tx.scenario,
+    correct,
+    hint_used: hintUsed,
+    time_seconds: solveSeconds
+  });
+
   if (correct) {
     session.combo++;
     session.maxCombo = Math.max(session.maxCombo, session.combo);
@@ -2036,6 +2048,15 @@ async function sendScore(data) {
     await _sbBoki.from('boki_scores').insert(data);
   } catch (e) {
     console.warn('スコア送信失敗:', e);
+  }
+}
+
+async function sendAnswerLog(data) {
+  if (!_sbBoki) return;
+  try {
+    await _sbBoki.from('boki_answers').insert(data);
+  } catch (e) {
+    console.warn('回答ログ送信失敗:', e);
   }
 }
 
