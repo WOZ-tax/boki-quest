@@ -7,8 +7,8 @@ let _sbBoki = null;
 try {
   if (typeof supabase !== 'undefined' && supabase.createClient) {
     _sbBoki = supabase.createClient(
-      'https://pohpqzygftltbinrtqnm.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvaHBxenlnZnRsdGJpbnJ0cW5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MzY4NzEsImV4cCI6MjA5MTIxMjg3MX0.MQWYswSHRfRti9jdQ2KgAQ0Bh9xlSXEpx1RCM_TRy8Q'
+      'https://sppzwidhlnqaghbcrjem.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwcHp3aWRobG5xYWdoYmNyamVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MDQwOTUsImV4cCI6MjA5MTA4MDA5NX0.UHam8n2nvTGEw68g9kys5K7CHIuoipyK4jJ02iH_oS8'
     );
   }
 } catch(e) { console.warn('Supabase init skipped:', e.message); }
