@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>簿記クエスト - BOKI QUEST</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #1a2235;
+      --border: rgba(255,255,255,0.06);
+      --border2: rgba(255,255,255,0.12);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --faint: #475569;
+      --cyan: #4a9eff;
+      --gold: #f59e0b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --purple: #a855f7;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DotGothic16', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      overflow: auto;
+    }
+
+    /* ─── 画面切り替え ─── */
+    .scr { display: none; width: 100%; min-height: 100vh; min-height: 100dvh; overflow-y: auto; }
+    .scr.on { display: flex; flex-direction: column; }
+
+    /* ─── ドット枠 ─── */
+    .dot-box {
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 12px rgba(74,158,255,0.3), inset 0 0 12px rgba(74,158,255,0.05);
+      border-radius: 4px;
+      padding: 16px;
+      background: var(--surface);
+    }
+
+    /* ─── ボタン ─── */
+    .btn {
+      font-family: 'DotGothic16', monospace;
+      font-size: 14px;
+      padding: 10px 20px;
+      border: 2px solid var(--border2);
+      background: var(--surface2);
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 8px rgba(74,158,255,0.3); }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { border-color: var(--cyan); color: var(--bg); background: var(--cyan); }
+    .btn-primary:hover { background: #6eb5ff; color: var(--bg); }
+    .btn-gold { border-color: var(--gold); color: var(--gold); }
+    .btn-gold:hover { background: var(--gold); color: var(--bg); box-shadow: 0 0 8px rgba(245,158,11,0.3); }
+    .btn-green { border-color: var(--green); color: var(--green); }
+    .btn-green:hover { background: var(--green); color: var(--bg); }
+    .btn-red { border-color: var(--red); color: var(--red); }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn-lg { padding: 14px 32px; font-size: 16px; }
+
+    /* ─── INPUT ─── */
+    input[type="text"], input[type="number"], select {
+      font-family: 'DotGothic16', monospace;
+      font-size: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 4px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px rgba(74,158,255,0.2);
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* ══════════════════════════════════════
+       タイトル画面
+    ══════════════════════════════════════ */
+    #s-title {
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      background-image:
+        linear-gradient(rgba(74,158,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,158,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .title-card {
+      width: 480px;
+      max-width: calc(100vw - 32px);
+      text-align: center;
+    }
+
+    .title-logo {
+      font-size: 52px;
+      color: var(--cyan);
+      text-shadow: 0 0 20px rgba(74,158,255,0.8), 0 0 40px rgba(74,158,255,0.4);
+      letter-spacing: 4px;
+      margin-bottom: 4px;
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes logoPulse {
+      0%, 100% { text-shadow: 0 0 20px rgba(74,158,255,0.8), 0 0 40px rgba(74,158,255,0.4); }
+      50% { text-shadow: 0 0 30px rgba(74,158,255,1), 0 0 60px rgba(74,158,255,0.6), 0 0 80px rgba(74,158,255,0.3); }
+    }
+
+    .title-sub {
+      font-size: 12px;
+      color: var(--gold);
+      letter-spacing: 3px;
+      margin-bottom: 32px;
+      opacity: 0.8;
+    }
+
+    .title-version {
+      font-size: 10px;
+      color: var(--faint);
+      margin-top: 4px;
+    }
+
+    .title-save-row {
+      margin: 18px 0 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      text-align: left;
+    }
+    .title-save-chip {
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 12px;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.02);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .title-help {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px dashed var(--border2);
+      border-radius: 4px;
+      text-align: left;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    .title-form { display: flex; flex-direction: column; gap: 16px; }
+
+    .title-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; text-align: left; }
+
+    .diff-row { display: flex; gap: 8px; justify-content: center; }
+    .diff-btn {
+      flex: 1;
+      font-family: 'DotGothic16', monospace;
+      font-size: 13px;
+      padding: 10px 8px;
+      border: 2px solid var(--border2);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    .diff-btn.selected[data-diff="beginner"] { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.1); box-shadow: 0 0 8px rgba(34,197,94,0.3); }
+    .diff-btn.selected[data-diff="intermediate"] { border-color: var(--gold); color: var(--gold); background: rgba(245,158,11,0.1); box-shadow: 0 0 8px rgba(245,158,11,0.3); }
+    .diff-btn.selected[data-diff="advanced"] { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.1); box-shadow: 0 0 8px rgba(239,68,68,0.3); }
+
+    .title-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .title-actions .btn { flex: 1; }
+
+    #title-error { color: var(--red); font-size: 12px; min-height: 18px; text-align: left; }
+
+    /* ══════════════════════════════════════
+       クエスト選択画面
+    ══════════════════════════════════════ */
+    #s-quest-select {
+      background: var(--bg);
+      background-image:
+        linear-gradient(rgba(74,158,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,158,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .qs-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border2);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .qs-header h2 { color: var(--cyan); font-size: 18px; }
+    .qs-player { color: var(--muted); font-size: 13px; }
+
+    .qs-body { flex: 1; overflow-y: auto; padding: 24px; }
+    .qs-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 20px;
+      align-items: start;
+    }
+    .qs-main { min-width: 0; }
+    .qs-side {
+      position: sticky;
+      top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .qs-group { margin-bottom: 32px; }
+    .qs-group-title {
+      font-size: 13px;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .qs-group-title.beginner { color: var(--green); }
+    .qs-group-title.intermediate { color: var(--gold); }
+    .qs-group-title.advanced { color: var(--red); }
+
+    .qs-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .quest-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .quest-card:not(.locked):not(.diff-locked):hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(74,158,255,0.3);
+    }
+    .quest-card.locked, .quest-card.diff-locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .quest-card.unlocked { border-color: var(--border2); }
+    .quest-card.cleared { border-color: var(--green); }
+    .quest-card.selected {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 1px rgba(74,158,255,0.45), 0 0 14px rgba(74,158,255,0.22);
+    }
+    .quest-num { font-size: 10px; color: var(--faint); }
+    .quest-title { font-size: 12px; color: var(--text); }
+    .quest-rank { font-size: 16px; font-weight: bold; }
+    .quest-rank.S { color: var(--gold); }
+    .quest-rank.A { color: var(--cyan); }
+    .quest-rank.B { color: var(--green); }
+    .quest-rank.C { color: var(--muted); }
+    .quest-lock-icon { font-size: 20px; }
+    .quest-preview {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 16px;
+    }
+    .quest-preview-label {
+      color: var(--faint);
+      font-size: 10px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .quest-preview-title {
+      color: var(--cyan);
+      font-size: 20px;
+      line-height: 1.4;
+    }
+    .quest-preview-sub {
+      margin-top: 8px;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+    .quest-preview-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .mini-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border2);
+      font-size: 10px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.02);
+    }
+    .quest-preview-stats {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .quest-preview-stat {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px;
+    }
+    .quest-preview-stat-label {
+      color: var(--faint);
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+    .quest-preview-stat-value {
+      color: var(--text);
+      font-size: 14px;
+    }
+    .quest-preview-focus {
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(74,158,255,0.06);
+      border-left: 3px solid var(--cyan);
+      border-radius: 4px;
+      font-size: 11px;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+    .quest-preview-action {
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    /* ══════════════════════════════════════
+       メインゲーム画面
+    ══════════════════════════════════════ */
+    #s-game {
+      background: var(--bg);
+    }
+
+    /* ヘッダー */
+    .game-header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--border2);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+      font-size: 13px;
+    }
+    .gh-quest { color: var(--gold); font-size: 14px; flex: 1; }
+    .gh-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .gh-stat-label { font-size: 9px; color: var(--faint); letter-spacing: 1px; }
+    .gh-stat-value { color: var(--cyan); font-size: 15px; }
+    .gh-combo { color: var(--purple); }
+    .gh-score { color: var(--gold); }
+    .gh-timer.warning { color: var(--gold); text-shadow: 0 0 10px rgba(245,158,11,0.45); }
+    .gh-timer.danger { color: var(--red); text-shadow: 0 0 12px rgba(239,68,68,0.55); animation: timerBlink 0.8s step-end infinite; }
+    .gh-sep { color: var(--faint); }
+    @keyframes timerBlink {
+      50% { opacity: 0.45; }
+    }
+
+    /* 3ペイン */
+    .game-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 220px 1fr 260px;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* 左ペイン: 仕訳帳 */
+    .pane-journal {
+      background: var(--surface);
+      border-right: 1px solid var(--border2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .pane-title {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .journal-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .journal-item {
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      border-left: 3px solid var(--border2);
+      background: var(--surface2);
+    }
+    .journal-item.correct { border-left-color: var(--green); }
+    .journal-item.wrong { border-left-color: var(--red); }
+    .journal-item.current { border-left-color: var(--cyan); background: rgba(74,158,255,0.08); }
+    .journal-item.pending { opacity: 0.4; }
+    .ji-num { color: var(--faint); font-size: 10px; }
+    .ji-icon { font-size: 11px; }
+    .ji-icon.correct { color: var(--green); }
+    .ji-icon.wrong { color: var(--red); }
+    .ji-text { color: var(--text); word-break: break-all; }
+
+    /* 中央ペイン: 入力エリア */
+    .pane-input {
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .scenario-box {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-left: 4px solid var(--gold);
+      border-radius: 4px;
+      padding: 16px;
+    }
+    .scenario-turn { font-size: 11px; color: var(--gold); margin-bottom: 6px; letter-spacing: 1px; }
+    .scenario-text { font-size: 18px; color: var(--text); line-height: 1.8; }
+    .scenario-meta {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .scenario-focus {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.8;
+    }
+    .scenario-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    /* 仕訳入力グリッド */
+    .journal-entry-form { display: flex; flex-direction: column; gap: 8px; }
+    .entry-row {
+      display: grid;
+      grid-template-columns: 1fr 120px 1fr 120px 32px;
+      gap: 6px;
+      align-items: center;
+    }
+    .entry-row-header {
+      display: grid;
+      grid-template-columns: 1fr 120px 1fr 120px 32px;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--faint);
+      letter-spacing: 1px;
+      padding: 0 2px;
+    }
+    .entry-divider {
+      width: 2px;
+      height: 32px;
+      background: var(--border2);
+      justify-self: center;
+    }
+    .remove-row-btn {
+      background: transparent;
+      border: 1px solid var(--faint);
+      color: var(--faint);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .remove-row-btn:hover { border-color: var(--red); color: var(--red); }
+
+    .add-row-btns { display: flex; gap: 8px; }
+
+    .hint-box {
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--gold);
+      display: none;
+    }
+    .hint-box.show { display: block; }
+
+    .feedback-box {
+      padding: 12px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      display: none;
+    }
+    .feedback-box.show { display: block; }
+    .feedback-box.correct {
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: var(--green);
+    }
+    .feedback-box.wrong {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--red);
+    }
+
+    .action-row { display: flex; gap: 8px; }
+
+    /* 試算表確認フェーズ */
+    .tb-check-box {
+      background: var(--surface2);
+      border: 2px solid var(--cyan);
+      border-radius: 6px;
+      padding: 16px;
+      text-align: center;
+      display: none;
+    }
+    .tb-check-box.show { display: block; }
+    .tb-check-title { color: var(--cyan); font-size: 16px; margin-bottom: 12px; }
+    .tb-balance-ok { color: var(--green); font-size: 14px; margin-bottom: 12px; }
+    .tb-balance-ng { color: var(--red); font-size: 14px; margin-bottom: 12px; }
+
+    /* 右ペイン: 試算表 */
+    .pane-trial {
+      background: var(--surface);
+      border-left: 1px solid var(--border2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .trial-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .trial-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .trial-table th {
+      color: var(--faint);
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-align: right;
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .trial-table th:first-child { text-align: left; }
+    .trial-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+      color: var(--muted);
+    }
+    .trial-table td:first-child { text-align: left; color: var(--text); }
+    .trial-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .trial-total {
+      font-size: 10px;
+      padding: 6px 6px;
+      border-top: 2px solid var(--border2);
+    }
+    .trial-total td { color: var(--text); font-size: 12px; }
+    .trial-ok { color: var(--green) !important; }
+    .trial-ng { color: var(--red) !important; }
+
+    /* ══════════════════════════════════════
+       視覚フィードバック overlay
+    ══════════════════════════════════════ */
+    .feedback-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 64px;
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0;
+    }
+    .feedback-overlay.flash-correct {
+      color: var(--green);
+      animation: flashCorrect 0.6s forwards;
+    }
+    .feedback-overlay.flash-wrong {
+      color: var(--red);
+      animation: flashWrong 0.6s forwards;
+    }
+    @keyframes flashCorrect {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+      100% { opacity: 0; transform: translate(-50%, -60%) scale(1); }
+    }
+    @keyframes flashWrong {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+      30% { transform: translate(-50%, -50%) scale(1.1) rotate(-5deg); }
+      60% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .popup-score {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+      color: var(--gold);
+      pointer-events: none;
+      z-index: 101;
+      opacity: 0;
+      text-shadow: 0 0 10px rgba(245,158,11,0.8);
+    }
+    .popup-score.show {
+      animation: popScore 1s forwards;
+    }
+    @keyframes popScore {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+      30% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); }
+      100% { opacity: 0; transform: translate(-50%, -80%) scale(1); }
+    }
+
+    .popup-combo {
+      position: fixed;
+      top: 34%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 16px;
+      color: var(--purple);
+      pointer-events: none;
+      z-index: 101;
+      opacity: 0;
+    }
+    .popup-combo.show {
+      animation: popCombo 1s forwards;
+    }
+    @keyframes popCombo {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+      30% { opacity: 1; transform: translate(-50%, -60%); }
+      100% { opacity: 0; transform: translate(-50%, -80%); }
+    }
+
+    .popup-quick {
+      position: fixed;
+      top: 46%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+      color: var(--cyan);
+      pointer-events: none;
+      z-index: 101;
+      opacity: 0;
+      text-shadow: 0 0 12px rgba(74,158,255,0.8);
+    }
+    .popup-quick.show {
+      animation: popQuick 1s forwards;
+    }
+    @keyframes popQuick {
+      0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -72%) scale(1.02); }
+    }
+
+    .hot-text {
+      position: fixed;
+      top: 28%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 22px;
+      color: #ff6b35;
+      pointer-events: none;
+      z-index: 101;
+      opacity: 0;
+      text-shadow: 0 0 15px rgba(255,107,53,0.8);
+    }
+    .hot-text.show {
+      animation: popHot 1.2s forwards;
+    }
+    @keyframes popHot {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+      70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
+    }
+
+    /* screen flash */
+    .screen-flash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 99;
+      opacity: 0;
+    }
+    .screen-flash.green { background: rgba(34,197,94,0.15); animation: screenFlash 0.3s forwards; }
+    .screen-flash.red { background: rgba(239,68,68,0.15); animation: screenFlash 0.3s forwards; }
+    @keyframes screenFlash {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .timeup-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10,14,26,0.82);
+      color: var(--red);
+      font-size: 54px;
+      letter-spacing: 6px;
+      text-shadow: 0 0 24px rgba(239,68,68,0.65);
+      pointer-events: none;
+      z-index: 110;
+      opacity: 0;
+    }
+    .timeup-overlay.show {
+      animation: timeUpReveal 1.2s forwards;
+    }
+    @keyframes timeUpReveal {
+      0% { opacity: 0; transform: scale(1.06); }
+      20% { opacity: 1; transform: scale(1); }
+      75% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.02); }
+    }
+
+    /* shake */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+    .shake { animation: shake 0.4s ease; }
+
+    /* ══════════════════════════════════════
+       結果画面
+    ══════════════════════════════════════ */
+    #s-result {
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse at center, rgba(74,158,255,0.06) 0%, transparent 70%);
+    }
+
+    .result-card {
+      width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .result-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .rank-badge {
+      font-size: 80px;
+      font-weight: bold;
+      display: block;
+      animation: rankReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      transform: scale(0);
+    }
+    .rank-badge.S { color: var(--gold); text-shadow: 0 0 40px rgba(245,158,11,0.8); }
+    .rank-badge.A { color: var(--cyan); text-shadow: 0 0 30px rgba(74,158,255,0.8); }
+    .rank-badge.B { color: var(--green); text-shadow: 0 0 20px rgba(34,197,94,0.6); }
+    .rank-badge.C { color: var(--muted); }
+    @keyframes rankReveal {
+      to { transform: scale(1); }
+    }
+
+    .result-score {
+      font-size: 42px;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(245,158,11,0.5);
+      margin-top: 8px;
+    }
+
+    .result-breakdown {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .result-stat {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      padding: 12px;
+    }
+    .result-stat-label { font-size: 10px; color: var(--faint); letter-spacing: 1px; }
+    .result-stat-value { font-size: 18px; color: var(--text); margin-top: 4px; }
+    .result-stat-value.plus { color: var(--green); }
+    .result-stat-value.minus { color: var(--red); }
+
+    .result-journal { margin: 16px 0; }
+    .result-journal-title { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-bottom: 8px; }
+    .result-journal-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      border-left: 3px solid var(--border2);
+      background: var(--surface2);
+      margin-bottom: 4px;
+    }
+    .result-journal-item.correct { border-left-color: var(--green); }
+    .result-journal-item.wrong { border-left-color: var(--red); }
+    .result-summary {
+      margin-bottom: 14px;
+      padding: 14px;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(74,158,255,0.08), rgba(255,255,255,0.02));
+      font-size: 12px;
+      line-height: 1.9;
+      color: var(--text);
+    }
+    .result-review {
+      margin: 16px 0;
+      padding: 14px;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.02);
+    }
+    .result-review-title {
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .result-review-text {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.8;
+      white-space: pre-line;
+    }
+
+    .result-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+
+    /* ══════════════════════════════════════
+       ランキング画面
+    ══════════════════════════════════════ */
+    #s-leaderboard {
+      background: var(--bg);
+    }
+    .lb-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border2);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .lb-header h2 { color: var(--gold); font-size: 18px; }
+
+    .lb-body { flex: 1; overflow-y: auto; padding: 24px; }
+
+    .lb-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .lb-table th {
+      color: var(--faint);
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .lb-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .lb-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .lb-rank-1 td { color: var(--gold); }
+    .lb-rank-2 td { color: var(--muted); }
+    .lb-rank-3 td { color: #cd7f32; }
+    .lb-score { color: var(--cyan) !important; font-size: 14px; }
+    .lb-loading, .lb-empty { text-align: center; color: var(--muted); padding: 40px; }
+
+    .diff-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid;
+    }
+    .diff-badge.beginner { border-color: var(--green); color: var(--green); }
+    .diff-badge.intermediate { border-color: var(--gold); color: var(--gold); }
+    .diff-badge.advanced { border-color: var(--red); color: var(--red); }
+
+    .rank-badge-sm {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: bold;
+      width: 24px;
+      text-align: center;
+    }
+    .rank-badge-sm.S { color: var(--gold); }
+    .rank-badge-sm.A { color: var(--cyan); }
+    .rank-badge-sm.B { color: var(--green); }
+    .rank-badge-sm.C { color: var(--muted); }
+
+    /* ══════════════════════════════════════
+       スクロールバー
+    ══════════════════════════════════════ */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* ══════════════════════════════════════
+       ドットデコ要素
+    ══════════════════════════════════════ */
+    .pixel-corner {
+      position: relative;
+    }
+    .pixel-corner::before, .pixel-corner::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--cyan);
+    }
+    .pixel-corner::before { top: -2px; left: -2px; }
+    .pixel-corner::after { bottom: -2px; right: -2px; }
+
+    /* ══════════════════════════════════════
+       ユーティリティ
+    ══════════════════════════════════════ */
+    .hidden { display: none !important; }
+    .text-cyan { color: var(--cyan); }
+    .text-gold { color: var(--gold); }
+    .text-green { color: var(--green); }
+    .text-red { color: var(--red); }
+    .text-muted { color: var(--muted); }
+    .text-right { text-align: right; }
+    .mt-8 { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .flex-gap-8 { display: flex; gap: 8px; }
+    .w-full { width: 100%; }
+
+    /* 数字フォント */
+    .num { font-variant-numeric: tabular-nums; }
+    .text-purple { color: var(--purple); }
+
+    @media (max-width: 1100px) {
+      .qs-layout {
+        grid-template-columns: 1fr;
+      }
+      .qs-side {
+        position: static;
+      }
+      .game-body {
+        grid-template-columns: 190px minmax(0, 1fr) 220px;
+      }
+      .entry-row,
+      .entry-row-header {
+        grid-template-columns: 1fr 100px 1fr 100px 32px;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .title-actions,
+      .diff-row,
+      .action-row {
+        flex-direction: column;
+      }
+      .qs-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .game-header {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .game-body {
+        grid-template-columns: 1fr;
+      }
+      .pane-journal,
+      .pane-trial {
+        max-height: 220px;
+        border: none;
+        border-top: 1px solid var(--border2);
+      }
+      .pane-input {
+        order: -1;
+      }
+      .scenario-meta {
+        grid-template-columns: 1fr;
+      }
+      .scenario-badges {
+        justify-content: flex-start;
+      }
+      .entry-row,
+      .entry-row-header {
+        grid-template-columns: 1fr 90px 1fr 90px 28px;
+        font-size: 10px;
+      }
+      .result-card {
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+      }
+      .result-breakdown,
+      .quest-preview-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════ タイトル画面 ══════ -->
+<section id="s-title" class="scr on">
+  <div class="title-card dot-box pixel-corner">
+    <div class="title-logo">簿記クエスト</div>
+    <div class="title-sub">BOKI QUEST ─ Journal Entry Training</div>
+    <div class="title-version">v1.0</div>
+    <div class="title-save-row">
+      <div class="title-save-chip" id="title-save-status">進捗データを読み込み中...</div>
+      <button class="btn btn-sm btn-red" id="btn-reset-progress">進捗リセット</button>
+    </div>
+    <div style="height:24px"></div>
+    <div class="title-form">
+      <div>
+        <div class="title-label">▶ ニックネームを入力</div>
+        <input type="text" id="inp-nickname" placeholder="プレイヤー名" maxlength="20" autocomplete="off">
+      </div>
+      <div>
+        <div class="title-label">▶ 難易度を選択</div>
+        <div class="diff-row">
+          <button class="diff-btn selected" data-diff="beginner">初級<br><span style="font-size:10px;color:var(--faint)">Lv.1-5</span></button>
+          <button class="diff-btn" data-diff="intermediate">中級<br><span style="font-size:10px;color:var(--faint)">Lv.6-10</span></button>
+          <button class="diff-btn" data-diff="advanced">上級<br><span style="font-size:10px;color:var(--faint)">Lv.11-15</span></button>
+        </div>
+      </div>
+      <div id="title-error"></div>
+      <div class="title-actions">
+        <button class="btn btn-primary btn-lg" id="btn-start">▶ スタート</button>
+        <button class="btn btn-gold" id="btn-leaderboard">🏆 ランキング</button>
+      </div>
+    </div>
+    <div class="title-help">
+      学習のコツ: ヒントは 2 段階。まずは自力で借方・貸方の増減を判断して、詰まったら使うとスコアを保ちやすいです。
+    </div>
+  </div>
+</section>
+
+<!-- ══════ クエスト選択 ══════ -->
+<section id="s-quest-select" class="scr">
+  <div class="qs-header">
+    <h2>◆ クエスト選択</h2>
+    <div class="qs-player">
+      <span id="qs-player-name" class="text-cyan"></span>
+      <span class="text-muted"> ─ </span>
+      <span id="qs-diff-label"></span>
+    </div>
+    <button class="btn btn-sm" id="btn-qs-back">← タイトルへ</button>
+  </div>
+  <div class="qs-body">
+    <div class="qs-layout">
+      <div class="qs-main">
+        <div class="qs-group">
+          <div class="qs-group-title beginner">■ 初級 BEGINNER</div>
+          <div class="qs-grid" id="grid-beginner"></div>
+        </div>
+        <div class="qs-group">
+          <div class="qs-group-title intermediate">■ 中級 INTERMEDIATE</div>
+          <div class="qs-grid" id="grid-intermediate"></div>
+        </div>
+        <div class="qs-group">
+          <div class="qs-group-title advanced">■ 上級 ADVANCED</div>
+          <div class="qs-grid" id="grid-advanced"></div>
+        </div>
+      </div>
+      <aside class="qs-side">
+        <div class="quest-preview" id="quest-preview">
+          <div class="quest-preview-label">QUEST PREVIEW</div>
+          <div class="quest-preview-title" id="qp-title">Quest 1</div>
+          <div class="quest-preview-sub" id="qp-summary"></div>
+          <div class="quest-preview-badges" id="qp-badges"></div>
+          <div class="quest-preview-stats">
+            <div class="quest-preview-stat">
+              <div class="quest-preview-stat-label">制限時間</div>
+              <div class="quest-preview-stat-value" id="qp-time">0:00</div>
+            </div>
+            <div class="quest-preview-stat">
+              <div class="quest-preview-stat-label">仕訳数</div>
+              <div class="quest-preview-stat-value" id="qp-transactions">0件</div>
+            </div>
+            <div class="quest-preview-stat">
+              <div class="quest-preview-stat-label">ベストランク</div>
+              <div class="quest-preview-stat-value" id="qp-rank">-</div>
+            </div>
+            <div class="quest-preview-stat">
+              <div class="quest-preview-stat-label">ベストスコア</div>
+              <div class="quest-preview-stat-value num" id="qp-score">-</div>
+            </div>
+          </div>
+          <div class="quest-preview-focus" id="qp-focus"></div>
+          <button class="btn btn-primary quest-preview-action" id="btn-start-selected">このクエストを開始</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ メインゲーム ══════ -->
+<section id="s-game" class="scr">
+  <!-- ヘッダー -->
+  <div class="game-header">
+    <div class="gh-quest" id="gh-quest-name"></div>
+    <div class="gh-stat">
+      <div class="gh-stat-label">TURN</div>
+      <div class="gh-stat-value" id="gh-turn">1/5</div>
+    </div>
+    <div class="gh-sep">│</div>
+    <div class="gh-stat">
+      <div class="gh-stat-label">SCORE</div>
+      <div class="gh-stat-value gh-score" id="gh-score">0</div>
+    </div>
+    <div class="gh-sep">│</div>
+    <div class="gh-stat">
+      <div class="gh-stat-label">COMBO</div>
+      <div class="gh-stat-value gh-combo" id="gh-combo">x0</div>
+    </div>
+    <div class="gh-sep">│</div>
+      <div class="gh-stat">
+        <div class="gh-stat-label">TIME</div>
+      <div class="gh-stat-value gh-timer" id="gh-timer">0:00</div>
+      </div>
+  </div>
+
+  <!-- 3ペイン -->
+  <div class="game-body">
+    <!-- 左: 仕訳帳 -->
+    <div class="pane-journal">
+      <div class="pane-title">仕訳帳 JOURNAL</div>
+      <div class="journal-list" id="journal-list"></div>
+    </div>
+
+    <!-- 中央: 入力 -->
+    <div class="pane-input" id="pane-input">
+      <!-- シナリオ -->
+      <div class="scenario-box" id="scenario-box">
+        <div class="scenario-turn" id="scenario-turn">◆ TURN 1</div>
+        <div class="scenario-text" id="scenario-text"></div>
+        <div class="scenario-meta">
+          <div class="scenario-focus" id="scenario-focus"></div>
+          <div class="scenario-badges" id="scenario-badges"></div>
+        </div>
+      </div>
+
+      <!-- 仕訳入力フォーム -->
+      <div class="journal-entry-form" id="journal-entry-form">
+        <div class="entry-row-header">
+          <div>借方科目</div>
+          <div>金額</div>
+          <div>貸方科目</div>
+          <div>金額</div>
+          <div></div>
+        </div>
+        <div id="entry-rows"></div>
+        <div class="add-row-btns" id="add-row-btns">
+          <button class="btn btn-sm" id="btn-add-debit">+ 借方行追加</button>
+          <button class="btn btn-sm" id="btn-add-credit">+ 貸方行追加</button>
+        </div>
+      </div>
+
+      <!-- ヒント -->
+      <div class="hint-box" id="hint-box"></div>
+
+      <!-- フィードバック -->
+      <div class="feedback-box" id="feedback-box"></div>
+
+      <!-- ボタン行 -->
+      <div class="action-row">
+        <button class="btn btn-sm" id="btn-hint">💡 ヒント (-50pt)</button>
+        <button class="btn btn-primary" id="btn-confirm">確認 ✓</button>
+      </div>
+
+      <!-- 試算表確認フェーズ -->
+      <div class="tb-check-box" id="tb-check-box">
+        <div class="tb-check-title">📊 試算表を確認してください！</div>
+        <div id="tb-balance-msg"></div>
+        <button class="btn btn-green btn-lg" id="btn-tb-confirm">✓ バランス確認！→ 結果へ</button>
+      </div>
+    </div>
+
+    <!-- 右: 試算表 -->
+    <div class="pane-trial">
+      <div class="pane-title">試算表 TRIAL BALANCE</div>
+      <div class="trial-content">
+        <table class="trial-table">
+          <thead>
+            <tr>
+              <th>科目</th>
+              <th>借方</th>
+              <th>貸方</th>
+            </tr>
+          </thead>
+          <tbody id="trial-tbody"></tbody>
+          <tfoot>
+            <tr class="trial-total">
+              <td>合計</td>
+              <td id="trial-total-debit" class="text-right num">0</td>
+              <td id="trial-total-credit" class="text-right num">0</td>
+            </tr>
+            <tr>
+              <td colspan="3" id="trial-balance-status" style="font-size:11px;padding:4px 6px;"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ 結果画面 ══════ -->
+<section id="s-result" class="scr">
+  <div class="result-card dot-box">
+    <div class="result-header">
+      <span class="rank-badge" id="result-rank-badge">A</span>
+      <div class="result-score num" id="result-score">0</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px" id="result-quest-name"></div>
+    </div>
+
+    <div class="result-breakdown">
+      <div class="result-stat">
+        <div class="result-stat-label">正答率</div>
+        <div class="result-stat-value" id="result-accuracy">0%</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-label">最大コンボ</div>
+        <div class="result-stat-value text-purple" id="result-combo">x0</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-label">基本スコア</div>
+        <div class="result-stat-value num" id="result-base">0</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-label">コンボボーナス</div>
+        <div class="result-stat-value plus num" id="result-combo-bonus">+0</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-label">タイムボーナス</div>
+        <div class="result-stat-value plus num" id="result-speed-bonus">+0</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-label">早解きボーナス</div>
+        <div class="result-stat-value plus num" id="result-quick-bonus">+0</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-label">ヒントペナルティ</div>
+        <div class="result-stat-value minus num" id="result-hint-penalty">-0</div>
+      </div>
+    </div>
+
+    <div class="result-summary" id="result-summary"></div>
+
+    <div class="result-journal">
+      <div class="result-journal-title">◆ 仕訳一覧</div>
+      <div id="result-journal-list"></div>
+    </div>
+
+    <div class="result-review">
+      <div class="result-review-title">◆ 復習ポイント</div>
+      <div class="result-review-text" id="result-review-text"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn" id="btn-retry-quest">もう一度挑戦</button>
+      <button class="btn btn-primary" id="btn-next-quest">次のクエスト ▶</button>
+      <button class="btn" id="btn-quest-select">クエスト選択</button>
+      <button class="btn btn-gold" id="btn-result-lb">🏆 ランキング</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ ランキング ══════ -->
+<section id="s-leaderboard" class="scr">
+  <div class="lb-header">
+    <h2>🏆 ランキング TOP 50</h2>
+    <button class="btn btn-sm" id="btn-lb-back">← タイトルへ</button>
+  </div>
+  <div class="lb-body">
+    <div id="lb-content">
+      <div class="lb-loading">読み込み中...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ ビジュアルエフェクト ══════ -->
+<div class="feedback-overlay" id="feedback-overlay"></div>
+<div class="popup-score" id="popup-score"></div>
+<div class="popup-combo" id="popup-combo"></div>
+<div class="popup-quick" id="popup-quick"></div>
+<div class="hot-text" id="hot-text">🔥 HOT!</div>
+<div class="screen-flash" id="screen-flash"></div>
+<div class="timeup-overlay" id="timeup-overlay">TIME UP</div>
+
+<!-- datalist 科目リスト -->
+<datalist id="account-list">
+  <option value="現金">
+  <option value="当座預金">
+  <option value="普通預金">
+  <option value="売掛金">
+  <option value="前払金">
+  <option value="未収入金">
+  <option value="商品">
+  <option value="建物">
+  <option value="工具器具備品">
+  <option value="減価償却累計額">
+  <option value="買掛金">
+  <option value="短期借入金">
+  <option value="長期借入金">
+  <option value="未払費用">
+  <option value="前受金">
+  <option value="仮受消費税">
+  <option value="仮払消費税">
+  <option value="資本金">
+  <option value="未払法人税等">
+  <option value="売上高">
+  <option value="受取利息">
+  <option value="仕入高">
+  <option value="給料賃金">
+  <option value="水道光熱費">
+  <option value="通信費">
+  <option value="備品・消耗品費">
+  <option value="支払利息">
+  <option value="地代家賃">
+  <option value="保険料">
+  <option value="減価償却費">
+  <option value="雑費">
+  <option value="法人税等">
+</datalist>
+
+<script>
+// Supabase SDK needs sessionStorage which fails in sandboxed iframes.
+// Polyfill sessionStorage/localStorage before loading the SDK.
+(function(){
+  try { window.sessionStorage; } catch(e) {
+    var _s={};
+    var fake={getItem:function(k){return _s[k]||null},setItem:function(k,v){_s[k]=String(v)},removeItem:function(k){delete _s[k]},clear:function(){_s={}},get length(){return Object.keys(_s).length},key:function(i){return Object.keys(_s)[i]||null}};
+    try{Object.defineProperty(window,'sessionStorage',{value:fake,writable:false})}catch(e2){}
+  }
+  try { window.localStorage; } catch(e) {
+    var _l={};
+    var fake2={getItem:function(k){return _l[k]||null},setItem:function(k,v){_l[k]=String(v)},removeItem:function(k){delete _l[k]},clear:function(){_l={}},get length(){return Object.keys(_l).length},key:function(i){return Object.keys(_l)[i]||null}};
+    try{Object.defineProperty(window,'localStorage',{value:fake2,writable:false})}catch(e2){}
+  }
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="game.js?v=1775699200"></script>
+<script data-pplx-inline-edit>
+(function(){
+  if(window===window.top)return;
+  function inlineAll(orig,clone){
+    if(orig.nodeType!==1)return;
+    try{
+      var cs=getComputedStyle(orig);
+      var t='';
+      for(var i=0;i<cs.length;i++){t+=cs[i]+':'+cs.getPropertyValue(cs[i])+';';}
+      clone.style.cssText=t;
+    }catch(e){}
+    var oc=orig.children,cc=clone.children;
+    for(var j=0;j<oc.length&&j<cc.length;j++){inlineAll(oc[j],cc[j]);}
+  }
+  function stripExternal(clone){
+    var imgs=clone.querySelectorAll('img');
+    for(var i=0;i<imgs.length;i++){
+      var s=imgs[i].getAttribute('src');
+      if(s&&!s.startsWith('data:'))imgs[i].removeAttribute('src');
+    }
+    var all=clone.querySelectorAll('*');
+    for(var i=0;i<all.length;i++){
+      var st=all[i].style.cssText;
+      if(st&&st.indexOf('url(')>=0){
+        all[i].style.cssText=st.replace(/url\(["']?(?!data:)[^)"']*["']?\)/gi,'none');
+      }
+    }
+  }
+  window.addEventListener('message',function(e){
+    if(!e.data||e.data.type!=='INLINE_EDIT_CAPTURE_REQUEST')return;
+    var scrollX=window.scrollX||window.pageXOffset||0;
+    var scrollY=window.scrollY||window.pageYOffset||0;
+    var w=window.innerWidth,h=window.innerHeight;
+    try{
+      var clone=document.documentElement.cloneNode(true);
+      var rm=clone.querySelectorAll('script,link[rel="stylesheet"],style');
+      for(var i=0;i<rm.length;i++){rm[i].remove();}
+      inlineAll(document.documentElement,clone);
+      stripExternal(clone);
+      var html=new XMLSerializer().serializeToString(clone);
+      var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'">'
+        +'<foreignObject width="100%" height="100%">'
+        +'<div xmlns="http://www.w3.org/1999/xhtml" style="width:'+w+'px;height:'+h+'px;overflow:hidden">'
+        +'<div style="transform:translate(-'+scrollX+'px,-'+scrollY+'px);transform-origin:top left">'
+        +html+'</div></div></foreignObject></svg>';
+      var svgUrl='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+      var img=new Image();
+      img.onload=function(){
+        var c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0);
+        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:c.toDataURL('image/png'),scrollX:scrollX,scrollY:scrollY},'*');
+      };
+      img.onerror=function(){
+        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
+      };
+      img.src=svgUrl;
+    }catch(err){
+      window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
+    }
+  });
+})();
+</script></body>
+</html>
