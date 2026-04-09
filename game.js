@@ -379,7 +379,7 @@ const QUESTS = [
     timeLimit: 360,
     transactions: [
       {
-        scenario: '銀行から ¥2,000,000 を借り入れ、普通預金に入金された',
+        scenario: '銀行から長期で ¥2,000,000 を借り入れ、普通預金に入金された',
         hint: '借方：普通預金（資産）増加、貸方：長期借入金（負債）発生',
         answer: [
           { debit: '普通預金', debitAmount: 2000000, credit: '長期借入金', creditAmount: 2000000 }
@@ -602,11 +602,11 @@ const QUESTS = [
     transactions: [
       {
         scenario: '売掛金 ¥10,000 が貸し倒れた（回収不能）',
-        hint: '借方：雑費（費用）、貸方：売掛金（資産）減少 ※簡略化処理',
+        hint: '借方：貸倒損失（費用）、貸方：売掛金（資産）減少',
         answer: [
-          { debit: '雑費', debitAmount: 10000, credit: '売掛金', creditAmount: 10000 }
+          { debit: '貸倒損失', debitAmount: 10000, credit: '売掛金', creditAmount: 10000 }
         ],
-        explanation: '貸倒れの簡略処理：雑費（借方）で損失を計上し、売掛金（貸方）を取り消す'
+        explanation: '回収不能な売掛金は「貸倒損失（費用）」として借方に計上し、売掛金を取り消す'
       },
       {
         scenario: '前払いしていた保険料 ¥120,000 を費用に振り替えた',
@@ -724,12 +724,12 @@ const QUESTS = [
       },
       {
         scenario: '給料 ¥350,000 を支払い。所得税 ¥30,000 を源泉徴収。差引 ¥320,000 を普通預金から振込',
-        hint: '給料賃金350,000（借方）/ 普通預金320,000 + 未払費用30,000（貸方）',
+        hint: '給料賃金350,000（借方）/ 普通預金320,000 + 預り金30,000（貸方）',
         answer: [
           { debit: '給料賃金', debitAmount: 350000, credit: '普通預金', creditAmount: 320000 },
-          { debit: null, debitAmount: null, credit: '未払費用', creditAmount: 30000 }
+          { debit: null, debitAmount: null, credit: '預り金', creditAmount: 30000 }
         ],
-        explanation: '源泉徴収税は「未払費用（負債）」として後で税務署に納付する'
+        explanation: '源泉徴収した所得税は「預り金（負債）」として一時的に預かり、後で税務署に納付する'
       },
       {
         scenario: '商品 ¥330,000（税込10%）を掛けで仕入れた',
