@@ -90,11 +90,11 @@ const QUESTS = [
       },
       {
         scenario: '交通費 ¥5,000 を現金で支払った',
-        hint: '借方：雑費（費用）、貸方：現金（資産）減少',
+        hint: '借方：旅費交通費（費用）、貸方：現金（資産）減少',
         answer: [
-          { debit: '雑費', debitAmount: 5000, credit: '現金', creditAmount: 5000 }
+          { debit: '旅費交通費', debitAmount: 5000, credit: '現金', creditAmount: 5000 }
         ],
-        explanation: '交通費などの雑多な費用は「雑費」として記録する'
+        explanation: '電車代やタクシー代などの交通費は「旅費交通費」として記録する'
       },
       {
         scenario: '水道光熱費 ¥22,000 を現金で支払った',
